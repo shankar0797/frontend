@@ -149,7 +149,8 @@ jobs:
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v5
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/pharma-dev-github-actions-role
+          #role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/pharma-dev-github-actions-role
+          role-to-assume: arn:aws:iam::683604924610:role/pharma-dev-github-actions-role
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
@@ -208,5 +209,6 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
           git diff --staged --quiet && echo "Already up to date" && exit 0
+          git commit -m "ci(dev): update pharma-ui → ${IMAGE_TAG}"
           git commit -m "ci(dev): update pharma-ui - ${IMAGE_TAG}"
           git push
