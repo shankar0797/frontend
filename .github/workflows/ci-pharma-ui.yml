@@ -150,6 +150,13 @@ jobs:
         id: tag
         run: echo "image_tag=sha-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
+      - name: Debug GitHub OIDC context
+        run: |
+          echo "Repository: $GITHUB_REPOSITORY"
+          echo "Ref: $GITHUB_REF"
+          echo "Event: $GITHUB_EVENT_NAME"
+          echo "Environment: $GITHUB_ENV"
+
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v5
         with:
