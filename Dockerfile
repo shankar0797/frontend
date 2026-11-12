@@ -35,12 +35,9 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Create non-root user and fix permissions
 RUN addgroup -S pharma && adduser -S -u 1000 pharma -G pharma \
-    && chown -R pharma:pharma \
-       /usr/share/nginx/html \
-       /var/cache/nginx \
-       /var/run \
-       /tmp \
-    && sed -i 's#pid /var/run/nginx.pid;#pid /tmp/nginx.pid;#' /etc/nginx/nginx.conf
+    && mkdir -p /var/cache/nginx/client_temp /var/cache/nginx/proxy_temp /var/cache/nginx/fastcgi_temp /var/cache/nginx/uwsgi_temp /var/cache/nginx/scgi_temp \
+    && chown -R pharma:pharma /usr/share/nginx/html /var/cache/nginx /var/run /tmp \
+    && sed -i 's#^[[:space:]]*pid[[:space:]].*nginx.pid;#pid /tmp/nginx.pid;#' /etc/nginx/nginx.conf
 
 # Run Nginx as non-root
 USER pharma
