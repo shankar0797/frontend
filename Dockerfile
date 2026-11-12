@@ -1,22 +1,50 @@
+
 # Stage 1: Build
 FROM node:22-alpine AS builder
+
 WORKDIR /app
+
 COPY package*.json ./
 RUN npm ci
+
 COPY public ./public
 COPY src ./src
 COPY .env.production ./
+
 RUN npm run build
 
 # Stage 2: Serve with Nginx
 FROM nginx:1.25-alpine
-RUN mkdir -p /tmp/client_temp /tmp/proxy_temp /tmp/fastcgi_temp /tmp/uwsgi_temp /tmp/scgi_temp
+
+# Create writable Nginx directories
+RUN mkdir -p \
+    /tmp/client_temp \
+    /tmp/proxy_temp \
+    /tmp/fastcgi_temp \
+    /tmp/uwsgi_temp \
+    /tmp/scgi_temp \
+    /var/cache/nginx/client_temp \
+    /var/cache/nginx/proxy_temp \
+    /var/cache/nginx/fastcgi_temp \
+    /var/cache/nginx/uwsgi_temp \
+    /var/cache/nginx/scgi_temp
+
+# Copy frontend build and Nginx configuration
 COPY --from=builder /app/build /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-RUN addgroup -S pharma && adduser -S -u 1000 pharma -G pharma \
-    && mkdir -p /var/cache/nginx/client_temp /var/cache/nginx/proxy_temp /var/cache/nginx/fastcgi_temp /var/cache/nginx/uwsgi_temp /var/cache/nginx/scgi_temp \
-    && chown -R pharma:pharma /usr/share/nginx/html /var/cache/nginx /var/run /tmp
 
+# Create non-root user and fix permissions
+RUN addgroup -S pharma && adduser -S -u 1000 pharma -G pharma \
+    && chown -R pharma:pharma \
+       /usr/share/nginx/html \
+       /var/cache/nginx \
+       /var/run \
+       /tmp \
+    && sed -i 's#pid /var/run/nginx.pid;#pid /tmp/nginx.pid;#' /etc/nginx/nginx.conf
+
+# Run Nginx as non-root
 USER pharma
+
 EXPOSE 8080
+
 CMD ["nginx", "-g", "daemon off;"]
